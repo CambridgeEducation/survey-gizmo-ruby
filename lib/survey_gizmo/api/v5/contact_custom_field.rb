@@ -1,5 +1,5 @@
 module SurveyGizmo::API::V5
-  class CustomContactField
+  class ContactCustomField
     include SurveyGizmo::Resource
 
     attribute :id, Integer
