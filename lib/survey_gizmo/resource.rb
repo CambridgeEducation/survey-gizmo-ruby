@@ -49,7 +49,7 @@ module SurveyGizmo
             start_fetch_time = Time.now
             logger.debug("Fetching #{name} page #{conditions} - #{conditions[:page]}#{response ? "/#{response['total_pages']}" : ''}...")
             response = Connection.get(create_route(:create, conditions)).body
-            collection = response['data'].map { |datum| datum.is_a?(Hash) ? new(conditions.merge(datum)) : datum }
+            collection = response['data'].map { |r| fetch_resource(r) }.map { |datum| datum.is_a?(Hash) ? new(conditions.merge(datum)) : datum }
 
             # Sub questions are not pulled by default so we have to retrieve them manually.  SurveyGizmo
             # claims they will fix this bug and eventually all questions will be returned in one request.
@@ -99,10 +99,18 @@ module SurveyGizmo
           url_params.delete($1.to_sym)
         end
 
-        SurveyGizmo.configuration.api_version + rest_path + filters_to_query_string(url_params)
+        api_version + rest_path + filters_to_query_string(url_params)
       end
 
       private
+
+      def api_version
+        @api_version || SurveyGizmo.configuration.api_version
+      end
+
+      def fetch_resource(resource)
+        (resource.is_a?(Object) && resource.size == 2) ? resource[1] : resource
+      end
 
       # Convert a [Hash] of params and internal surveygizmo style filters into a query string
       #
